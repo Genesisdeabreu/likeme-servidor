@@ -17,15 +17,15 @@ function Post({
             <div>
               <i
                 onClick={() => like(id)}
-                className={`fa-heart fa-xl ${
-                  likes ? "fa-solid" : "fa-regular"
-                }`}
-              ></i>
+                style={{ cursor: "pointer" }}
+                className={`fa-heart fa-xl ${likes ? "fa-solid text-primary" : "fa-regular"}`}
+              />
               <span className="ms-1">{likes}</span>
             </div>
             <i
               onClick={() => eliminarPost(id)}
-              className="fa-solid fa-x"
+              className="fa-solid fa-trash-can text-danger"
+              style={{ cursor: "pointer" }}
             ></i>
           </div>
         </div>
