@@ -49,24 +49,31 @@ app.post('/posts', async (req, res) => {
 
 
 // Ruta PUT: para modificar un post específico para aumentar la cantidad de likes 
-app.put("/posts/like/:id", async (req, res) => {
+//definimos la ruta PUT con express, la url incluye un parámetro dinámico que es el :id, este viene a ser el id del post:
+app.put("/posts/like/:id", async (req, res) => { 
+//extraemos el id de los parámetros de la ruta:
   const { id } = req.params;
+  //usamos try y catch para manejar errores, si algo falla en try, se va a ejecutar catch:
   try {
-    const result = await pool.query(
-      "UPDATE posts SET likes = likes + 1 WHERE id = $1 RETURNING *",
-      [id]
+    const result = await pool.query( //consulta en sql pool.query
+      //aquí se realiza la consulta SQL pool.query, se actualiza la tabla posts, se +1 al campo likes del post con el id indicado:
+      "UPDATE posts SET likes = likes + 1 WHERE id = $1 RETURNING *", //$1 es un placeholder seguro q evita inyecciones sql
+      [id] //se reemplaza por el valor de id en el array [id] ... y returning es para que postgrsql nos devuelva el post actualizado
     );
+    //verificamos si rowCount es 0, lo que significa que no se encontró ningún post con ese id, así que se responde con un error 404:
     if (result.rowCount === 0) {
       return res.status(404).json({ error: "Post no encontrado" });
     }
+    //si todo sale bien, se responde con el post actualizado (el primero en result.rows[0]):
     res.json(result.rows[0]);
+    //si hay un error durante el proceso de arriba, se captura con catch y arroja el error 500
   } catch (error) {
     console.error("Error al dar like:", error);
     res.status(500).json({ error: "Error al registrar el like" });
   }
 });
-//Esta ruta recibe el id del post por params
-//aumenta 1 en el campo de likes del post con ese id
+//Esta ruta recibe el id del post por parametros
+//suma 1 en el campo de likes del post con ese id
 //luego devuelve el post actualizado
 //y si no lo encuentra o hay un error lo maneja con los mensajes de error que establecimos
 
@@ -74,13 +81,22 @@ app.put("/posts/like/:id", async (req, res) => {
 
 
 // Ruta DELETE: para eliminar un post por su id
+//definimos la ruta DELETE y le colocamos :id como parámetro dinámico que se usará para identificar el post que se va a eliminar
 app.delete("/posts/:id", async (req, res) => {
+  //extraemos el id desde los parámetros de la url. ejemplo: si alguien hace DELETE /posts/7, aquí el id sería 7:
   const { id } = req.params;
+  //try y catch para manejar errores:
   try {
+    //se ejecuta la consulta SQL para eliminar el post, donde:
+      //DELETE FROM posts WHERE id = $1 va a eliminar el registro que coincida con ese id
+      //RETURNING * nos devuelve el post eliminado, en caso de que exista
+      //[id] pasa el valor de forma segura para evitar inyecciones SQL:
     const result = await pool.query("DELETE FROM posts WHERE id = $1 RETURNING *", [id]);
+    //si no se eliminó ningún registro (porque el post no existía), se responde con un error 404:
     if (result.rowCount === 0) {
       return res.status(404).json({ error: "Post no encontrado" });
     }
+    //si la eliminación fue exitosa, se responde con un mensaje de éxito y el post que fue eliminado:
     res.json({ mensaje: "Post eliminado correctamente", post: result.rows[0] });
   } catch (error) {
     console.error("Error al eliminar el post:", error);
